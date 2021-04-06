@@ -109,7 +109,8 @@ int32_t enet_send(mac_frame_t * pframe, tx_info * txinf)
   buff.data = (uint8_t * ) pframe;
   buff.length = pframe -> length + 14; // no VLAN: 6+6+2
 
-  if (linkStatus) {
+  if (linkStatus)
+  {
 
     state = ENET_DRV_SendFrame(INST_ENET, 0U, & buff, NULL);
 
@@ -127,14 +128,20 @@ int32_t enet_send(mac_frame_t * pframe, tx_info * txinf)
         txinf -> err_Mask = txInfo.errMask;
         txinf -> time_stamp = txInfo.timestamp;
         return 1;
-      } else
+      }
+      else
       {
         return -2;
       }
     }
-  } else
+    else
+    {
+    	return -3;
+    }
+  }
+  else
   {
-    return -3; // return value for no link state
+    return -4; // return value for no link state
   }
 }
 
@@ -144,13 +151,16 @@ void enet_cb(uint8_t instance, enet_event_t event, uint8_t ring) // for Rx send
   enet_buffer_t rxBuff;
   enet_rx_enh_info_t rxInfo;
   rx_info * rxinf;
-  if (event == ENET_RX_EVENT) {
+  if (event == ENET_RX_EVENT)
+  {
     state = ENET_DRV_ReadFrame(INST_ENET, 0U, & rxBuff, & rxInfo);
-
-    RxFrame = (mac_frame_t * ) rxBuff.data;
-    rxinf->header=rxInfo.headerLen;
-    rxinf->time_stamp_rx=rxInfo.timestamp;
+    if (state == STATUS_SUCCESS)
+    {
+    	RxFrame = (mac_frame_t * ) rxBuff.data;
+    	rxinf->header=rxInfo.headerLen;
+    	rxinf->time_stamp_rx=rxInfo.timestamp;
     // pull internal data-buffer back to driver pool
+    }
     ENET_DRV_ProvideRxBuff(INST_ENET, 0U, & rxBuff);
   }
 }
